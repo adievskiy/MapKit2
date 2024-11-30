@@ -12,7 +12,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.createBitmap
 import com.example.mapkit2.databinding.ActivityMainBinding
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -47,6 +46,23 @@ class MainActivity : AppCompatActivity() {
 
         moveToStartLocation()
         setMarker()
+
+        val traffic = MapKitFactory.getInstance().createTrafficLayer(binding.mapView.mapWindow)
+        var trafficIsOn = false
+        binding.trafficFAB.setOnClickListener {
+            when (trafficIsOn) {
+                false -> {
+                    trafficIsOn = true
+                    traffic.isTrafficVisible = true
+                    binding.trafficFAB.setImageResource(R.drawable.ic_traffic_on)
+                }
+                true -> {
+                    trafficIsOn = false
+                    traffic.isTrafficVisible = false
+                    binding.trafficFAB.setImageResource(R.drawable.ic_traffic_off)
+                }
+            }
+        }
     }
 
     private fun createBitmapFromVector(icPin: Int): Bitmap? {
@@ -73,9 +89,14 @@ class MainActivity : AppCompatActivity() {
 
     private fun checkLocationPermission() {
         when {
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED -> {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED -> {
                 getLastKnowLocation()
-            } else -> {
+            }
+
+            else -> {
                 requestLocationPermission()
             }
         }
@@ -83,7 +104,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun requestLocationPermission() {
         val requestPermissionLauncher = registerForActivityResult(
-            ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            ActivityResultContracts.RequestPermission()
+        ) { isGranted: Boolean ->
             if (isGranted) {
                 getLastKnownLocation()
             } else {
@@ -114,7 +136,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setApiKey(savedInstanceState: Bundle?) {
         val haveApiKey = savedInstanceState?.getBoolean("haveApiKey") ?: false
-        if (!haveApiKey)MapKitFactory.setApiKey(Utils.API_KEY)
+        if (!haveApiKey) MapKitFactory.setApiKey(Utils.API_KEY)
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
